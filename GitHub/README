@@ -1,0 +1,13 @@
+OVERVIEW:
+App is used to analyze inventory and make recommendations to improve inventory management
+
+
+
+INSTRUCTIONS:
+Step 01: Create New Workbook
+    Execute (function) to create a new workbook. A new Excel file will be created and will automatically
+    setup with all sheets, column header, formatting.
+
+
+
+
