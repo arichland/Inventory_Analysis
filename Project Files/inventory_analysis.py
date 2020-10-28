@@ -1,10 +1,12 @@
 _author_ = 'arichland'
 
-from openpyxl import load_workbook
+import openpyxl
 from openpyxl.utils.dataframe import dataframe_to_rows
 import pymysql.cursors
 from pydict import sql_dict
 import pandas as pd
+import numpy as np
+
 
 # SQL Fields
 user = sql_dict.get('user')
@@ -18,33 +20,41 @@ con = pymysql.connect(user=user,
                        database=database,
                        charset=charset)
 
-# Excel Fields
+# Workbook Fields
 filename = "Inventory Analysis.xlsx"
-wb = load_workbook(filename=filename)
+wb = openpyxl.load_workbook(filename=filename)
 wb.active = wb.sheetnames.index("Analysis")
 ws = wb.active
+df_rows = dataframe_to_rows
 
+
+
+# Get monthly inventory reports
 try:
     with con.cursor() as cur:
-        sum = 'SELECT Concat, Material, Location, Mat_Descr, Location_Descr FROM tbl_Analysis;'
-        cur.execute(sum)
-        cols = cur.description
-        col_name = [col[0] for col in cols]
-        data = [dict(zip(col_name, row))
-                for row in cur.fetchall()]
-        df = pd.DataFrame(data)
-        df["Sum"] = df.sum(axis=1)
-        rows = dataframe_to_rows(df, index=True, header=True)
-        for r_idx, row in enumerate(rows, 1):
-            for c_idx, value in enumerate(row, 1):
-                ws.cell(row=2+r_idx, column=c_idx, value=value)
-        ws.delete_cols(1)
-        ws.delete_rows(4)
-        ws.freeze_panes = "B4"
-        print("Dataset:")
-        print(df)
+        qry_rpt_inven = "SELECT sku, location, abc_class, dates, qty FROM pyInven_Report;"
+
+        # SQL query to pandas dataframe
+        read_df = pd.read_sql(qry_rpt_inven, con)
 finally:
-    con.commit()
-    cur.close()
-    con.close()
+        con.commit()
+        cur.close()
+        con.close()
+
+
+df = pd.DataFrame(read_df)
+#print(df)
+
+pivotTableDF = df.filter(items=['sku', 'location', 'qty'])
+pivotTableDF = pd.pivot_table(df,
+                              index='sku',
+                              columns='dates',
+                              values='qty',
+                              aggfunc=np.sum,
+                              margins=True)
+pivotTableDF.sort_values(by=['All'],
+                         inplace=True,
+                         ascending=False)
+print(pivotTableDF)
+# Save to workbook
 wb.save(filename=filename)
