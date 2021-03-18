@@ -9,13 +9,6 @@ import pydict
 from datetime import date
 import pprint
 pp = pprint.PrettyPrinter(indent=1)
-local = pydict.localhost.get
-
-# SQL Fields
-user = local('user')
-password = local('password')
-host = local('host')
-database = local('database')
 
 # OPENPYXL FIELDS
 # Setup workbook connection
@@ -38,10 +31,15 @@ headers.font = font(bold=True)
 headers.alignment = align(horizontal="center", vertical="center")
 headers.border = border(bottom=side(border_style="thin"))
 
-class analysis:
-    def query_data(str):
+class sql:
+    def query(str):
+        local = pydict.localhost.get
+        user = local('user')
+        password = local('password')
+        host = local('host')
+        database = local('database')
         data = {}
-        cols = []
+        headers = []
         con = pymysql.connect(user=user, password=password, host=host, database=database)
         try:
          with con.cursor() as cur:
@@ -49,20 +47,20 @@ class analysis:
             query = pydict.queries.get(str)
             cur.execute(query) # run SQL query
             rows = cur.fetchall() # Assign variable for rows
-            desc = cur.description # Assign variable for columns
+            cols = cur.description # Assign variable for columns
 
-            for i in range(len(desc)):
-                cols.append(desc[i][0])
+            for i in range(len(cols)):
+                headers.append(cols[i][0])
 
             for row in rows: # SQL query to dict
                 temp_dict = {row[0]: {
-                    cols[0]: row[0],
-                    cols[1]: row[1],
-                    cols[2]: row[2],
-                    cols[3]: row[3],
-                    cols[4]: row[4],
-                    cols[5]: row[5],
-                    cols[6]: row[6]}}
+                    headers[0]: row[0],
+                    headers[1]: row[1],
+                    headers[2]: row[2],
+                    headers[3]: row[3],
+                    headers[4]: row[4],
+                    headers[5]: row[5],
+                    headers[6]: row[6]}}
                 data.update(temp_dict)
         finally:
             con.commit()
@@ -70,9 +68,11 @@ class analysis:
             con.close()
         return data
 
+class analysis:
+
     def inventory_history():
         print(" Inventory History")
-        inven_hist = analysis.query_data("inventory history")
+        inven_hist = sql.query("inventory history")
         wb.active = wb.sheetnames.index("Inventory History")
         ws = wb.active
 
@@ -111,7 +111,7 @@ class analysis:
 
     def current_inven():
         print(" Current Inventory")
-        current_inven = analysis.query_data("current inventory")
+        current_inven = sql.query("current inventory")
         # CURRENT INVENTORY
         wb.active = wb.sheetnames.index("Current Inventory")
         ws = wb.active
@@ -143,7 +143,7 @@ class analysis:
 
     def sales_history():
         print(" Sales History")
-        sales_hist = analysis.query_data("sales history")
+        sales_hist = sql.query("sales history")
 
         # SALES HISTORY
         wb.active = wb.sheetnames.index("Sales History")
@@ -188,24 +188,100 @@ class analysis:
 
     def forecasts():
         print(" Forecasts")
-        forecasts = analysis.query_data("forecasts")
+        fc = sql.query("forecasts")
+        wb.active = wb.sheetnames.index("Forecast History")
+        ws = wb.active
+
+        # Load inven_history_dict to Pandas dataframe
+        df = pd.DataFrame.from_dict(fc, orient="index")
+        df = pd.pivot_table(df, values='forecast', index=['concat', 'sku', 'location'], columns=['dates'], aggfunc=np.sum, fill_value=0)
+        num_cols = len(df.columns)
+
+        writer = pd.ExcelWriter('Inventory Analysis.xlsx', engine='openpyxl')
+        book = wb
+        writer.book = book
+        writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
+        df.to_excel(writer, "Forecast History", startrow=2, startcol=0, engine="openpyxl", freeze_panes=(3, 1))
+
+
+        # Format rows and columns with openpyxl
+        for column in ws["A:C"]:
+            for cell in column:
+                cell.font = font(bold=None)
+                cell.alignment = align(horizontal="left", vertical="center")
+                cell.border = border(left=None, right=None, top=None, bottom=None)
+
+        for cell in ws[3]:
+            cell.font = headers.font
+            cell.alignment = headers.alignment
+            cell.border = headers.border
+        writer.save()
 
     def materials():
         print(" Materials")
-        materials = analysis.query_data("materials")
+        materials = sql.query("materials")
+
+        # Set active sheet
+        wb.active = wb.sheetnames.index("Material Data")
+        ws = wb.active
+
+        df = pd.DataFrame.from_dict(materials, orient="index")
+        df  = df.set_index('material')
+        df = pd.DataFrame(df, columns=['description', 'unit_cost', 'currency', 'unit_price', 'category', 'subcategory', 'org_code'])
+
+        writer = pd.ExcelWriter('Inventory Analysis.xlsx', engine='openpyxl')
+        book = wb
+        writer.book = book
+        writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
+        df.to_excel(writer, "Material Data", startrow=2, startcol=0, engine="openpyxl",
+                        freeze_panes=(3, 1))
+        for column in ws["A:B"]:
+            for cell in column:
+                cell.font = font(bold=None)
+                cell.alignment = align(horizontal="left", vertical="center")
+                cell.border = border(left=None, right=None, top=None, bottom=None)
+
+        for cell in ws[3]:
+            cell.font = headers.font
+            cell.alignment = headers.alignment
+            cell.border = headers.border
+        writer.save()
 
     def skus():
-        print(" SKUs")
-        skus = analysis.query_data("skus")
+       print(" SKUs")
+       sku = sql.query("skus")
 
-    def analyze():
-        print("Starting Analysis")
-        analysis.inventory_history()
-        analysis.current_inven()
-        analysis.sales_history()
-        analysis.forecasts()
-        analysis.materials()
-        analysis.skus()
-        print("Analysis Complete")
-analysis.analyze()
+        # Set active sheet
+       wb.active = wb.sheetnames.index("SKU Data")
+       ws = wb.active
 
+       df = pd.DataFrame.from_dict(sku, orient="index")
+       df = df.set_index('concat')
+       df = pd.DataFrame(df, columns=['sku_id', 'location', 'make_buy', 'name', 'description'])
+
+       writer = pd.ExcelWriter('Inventory Analysis.xlsx', engine='openpyxl')
+       book = wb
+       writer.book = book
+       writer.sheets = dict((ws.title, ws) for ws in book.worksheets)
+       df.to_excel(writer, "SKU Data", startrow=2, startcol=0, engine="openpyxl", freeze_panes=(3, 1))
+       for column in ws["A:B"]:
+           for cell in column:
+               cell.font = font(bold=None)
+               cell.alignment = align(horizontal="left", vertical="center")
+               cell.border = border(left=None, right=None, top=None, bottom=None)
+
+       for cell in ws[3]:
+           cell.font = headers.font
+           cell.alignment = headers.alignment
+           cell.border = headers.border
+       writer.save()
+
+
+def functions():
+   #analysis.inventory_history()
+   #analysis.current_inven()
+   analysis.sales_history()
+   analysis.forecasts()
+   #analysis.materials()
+   #analysis.skus()
+functions()

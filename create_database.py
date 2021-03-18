@@ -129,7 +129,7 @@ class tables:
                 cur.close()
                 con.close()
 
-    def create():
+def create_tables():
         tables.current_inventory()
         tables.inventory_history()
         tables.sales()
@@ -137,6 +137,6 @@ class tables:
         tables.skus()
         tables.forecasts()
 
-tables.create()
+create_tables()
 
 
