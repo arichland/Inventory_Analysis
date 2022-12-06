@@ -1,59 +1,62 @@
-_author_ = 'arichland'
-
 import openpyxl
-class workbook:
-    wb = openpyxl.Workbook()
-    ws = openpyxl.Workbook.active
-    filename = "Inventory Analysis.xlsx"
-    styles = openpyxl.styles
-    font = styles.Font
-    color = styles.Color
-    align = styles.Alignment
-    border = styles.Border
-    side = styles.Side
-    colors = styles.Color
-    namedstyle = styles.NamedStyle
-    header = namedstyle(name="header")
-    header.font = font(bold=True)
-    header.alignment = align(horizontal="left", vertical="center")
+from openpyxl import styles
 
-    cols = namedstyle(name="cols")
-    cols.font = font(bold=True)
-    cols.alignment = align(horizontal="center", vertical="center")
-    cols.border = border(bottom=side(border_style="thin"))
-    sheets = {
-        "Parameters": 0,
-        "Analysis": 1,
-        "Inventory History": 2,
-        "Current Inventory": 3,
-        "Sales History": 4,
-        "Forecast History": 5,
-        "Inventory Turns": 6,
-        "Segmentation": 7,
-        "Segmentation Calculation": 8,
-        "Material Data": 9,
-        "SKU Data": 10,
-        "Location Data": 11,
-        "Conversion": 12}
+class Create_file:
+    def __init__(self, filename):
+        self.workbook = openpyxl.Workbook()
+        self.sheet = openpyxl.Workbook.active
+        self.filename = filename
+        self.font = styles.Font
+        self.color = styles.Color
+        self.align = styles.Alignment
+        self.border = styles.Border
+        self.side = styles.Side
+        self.colors = styles.Color
+        self.namedstyle = styles.NamedStyle
 
-    def create_sheets():
-        wb = workbook.wb
-        sheets = workbook.sheets
-        filename = workbook.filename
+
+        self.header = self.namedstyle(name="header")
+        self.header.font = self.font(bold=True)
+        self.header.alignment = self.align(horizontal="left", vertical="center")
+
+        self.cols = self.namedstyle(name="cols")
+        self.cols.font = self.font(bold=True)
+        self.cols.alignment = self.align(horizontal="center", vertical="center")
+        self.cols.border = self.border(bottom=self.side(border_style="thin"))
+        self.tabs = {
+            "Parameters": 0,
+            "Analysis": 1,
+            "Inventory History": 2,
+            "Current Inventory": 3,
+            "Sales History": 4,
+            "Forecast History": 5,
+            "Inventory Turns": 6,
+            "Segmentation": 7,
+            "Segmentation Calculation": 8,
+            "Material Data": 9,
+            "SKU Data": 10,
+            "Location Data": 11,
+            "Conversion": 12}
+
+    def create_sheets(self):
+        wb = self.workbook
+        #ws = self.sheet
+        filename = self.filename
+
         # Create, name, and put sheets in order
-        sheets = workbook.sheets
-        for k,v in sheets.items():
+        tabs = self.tabs
+        for k, v in tabs.items():
             wb.create_sheet(k, v)
         wb.save(filename=filename)
 
-    def params():
-        sheets = workbook.sheets
-        wb = workbook.wb
-        wb.active = workbook.sheets.get("Parameters")
+    def params(self):
+        tabs = self.tabs
+        wb = self.workbook
+        wb.active = tabs.get("Parameters")
         params = wb.active
-        header = workbook.header
-        cols = workbook.cols
-        filename = workbook.filename
+        header = self.header
+        cols = self.cols
+        filename = self.filename
 
         params['A1'] = 'Instructions:'
         params['A1'].style = header
@@ -277,103 +280,93 @@ class workbook:
 
         wb.save(filename=filename)
 
-    def analysis():
-        sheets = workbook.sheets
-        wb = workbook.wb
-        wb.active = workbook.sheets.get("Analysis")
+    def analysis(self):
+        wb = self.workbook
+        tabs = self.tabs
+        wb.active = tabs.get("Analysis")
         ws = wb.active
         print("Analysis")
 
-    def inven_history():
-        sheets = workbook.sheets
-        wb = workbook.wb
-        wb.active = workbook.sheets.get("Inventory History")
+    def inven_history(self):
+        tabs = self.tabs
+        wb = self.workbook
+        tabs = self.tabs
+        wb.active = tabs.get("Inventory History")
         ws = wb.active
         print("Inventory History")
 
-    def current_inven():
-        sheets = workbook.sheets
-        wb = workbook.wb
-        wb.active = workbook.sheets.get("Current Inventory")
+    def current_inven(self):
+        wb = self.workbook
+        tabs = self.tabs
+        wb.active = tabs.get("Current Inventory")
         ws = wb.active
         print("Current Inventory")
 
-    def sales_history():
-        sheets = workbook.sheets
-        wb = workbook.wb
-        wb.active = workbook.sheets.get("Sales History")
+    def sales_history(self):
+        wb = self.workbook
+        tabs = self.tabs
+        wb.active = tabs.get("Sales History")
         ws = wb.active
         print("Sales History")
 
-    def forecast_history():
-        sheets = workbook.sheets
-        wb = workbook.wb
-        wb.active = workbook.sheets.get("Forecast History")
+    def forecast_history(self):
+        wb = self.workbook
+        tabs = self.tabs
+        wb.active = tabs.get("Forecast History")
         ws = wb.active
         print("Forecast History")
 
-    def inven_turns():
-        sheets = workbook.sheets
-        wb = workbook.wb
-        wb.active = workbook.sheets.get("Inventory Turns")
+    def inven_turns(self):
+        wb = self.workbook
+        tabs = self.tabs
+        wb.active = tabs.get("Inventory Turns")
         ws = wb.active
         print("Inventory Turns")
 
-    def segmen():
-        sheets = workbook.sheets
-        wb = workbook.wb
-        wb.active = workbook.sheets.get("Segmentation")
+    def segmen(self):
+        wb = self.workbook
+        tabs = self.tabs
+        wb.active = tabs.get("Segmentation")
         ws = wb.active
         print("Segmentation")
 
-    def segmen_calc():
-        sheets = workbook.sheets
-        wb = workbook.wb
-        wb.active = workbook.sheets.get("Segmentation Calculation")
+    def segmen_calc(self):
+        wb = self.workbook
+        tabs = self.tabs
+        wb.active = tabs.get("Segmentation Calculation")
         ws = wb.active
         print("Segmentation Calculation")
 
-    def mat_data():
-        sheets = workbook.sheets
-        wb = workbook.wb
-        wb.active = workbook.sheets.get("Material Data")
+    def mat_data(self):
+        wb = self.workbook
+        tabs = self.tabs
+        wb.active = tabs.get("Material Data")
         ws = wb.active
         print("Material Data")
 
-    def sku_data():
-        sheets = workbook.sheets
-        wb = workbook.wb
-        wb.active = workbook.sheets.get("SKU Data")
+    def sku_data(self):
+        wb = self.workbook
+        tabs = self.tabs
+        wb.active = tabs.get("SKU Data")
         ws = wb.active
         print("SKU Data")
 
-    def location():
-        sheets = workbook.sheets
-        wb = workbook.wb
-        wb.active = workbook.sheets.get("Location Data")
+    def location(self):
+        wb = self.workbook
+        tabs = self.tabs
+        wb.active = tabs.get("Location Data")
         ws = wb.active
         print("Location Data")
 
-    def conversion():
-        sheets = workbook.sheets
-        wb = workbook.wb
-        wb.active = workbook.sheets.get("Conversion")
+    def conversion(self):
+        wb = self.workbook
+        tabs = self.tabs
+        wb.active = tabs.get("Conversion")
         ws = wb.active
         print("Conversion")
 
-    def create():
-        workbook.create_sheets()
-        workbook.params()
-        workbook.analysis()
-        workbook.inven_history()
-        workbook.current_inven()
-        workbook.sales_history()
-        workbook.forecast_history()
-        workbook.inven_turns()
-        workbook.segmen()
-        workbook.segmen_calc()
-        workbook.mat_data()
-        workbook.sku_data()
-        workbook.location()
-        workbook.conversion()
-workbook.create()
+def create():
+    cf = Create_file("Inventory Analysis.xlsx")
+    cf.create_sheets()
+    cf.params()
+create()
